@@ -121,5 +121,5 @@ echo -e "${G}Verify repositories are from Satellite"
 subscription-manager repos | grep URL
 echo -e "${G}Final Updates"
 puppet agent -t && puppet agent -t && puppet agent -t
-yum -y update
+dnf -y update
 echo -e "${G}FINISHED!"

@@ -19,20 +19,21 @@ while true; do
     echo -e "${G}Verify username and password using Kerberos"
     read -p "Enter UOL username: " username
     echo
-    read -p -s "Enter UOL password: " upass
+    read -s -p "Enter UOL password: " upass
 
     # Use kinit to obtain a Kerberos ticket
     kinit "$username" <<< "$upass"
 
     if [ $? -eq 0 ]; then
         echo -e "${G}Kerberos authentication successful."
+        break
     else
         echo -e "${R}Kerberos authentication failed. Please check your username and password and try again."
     fi
 done
 
 # Enter and verify LUKS passphrase
-read -p -s "Enter LUKS Passphrase: " pass
+read -s -p "Enter LUKS Passphrase: " pass
 while true; do
     if cryptsetup luksOpen /dev/nvme0n1p3 luks_temp <<< "$pass"; then
         cryptsetup luksClose luks_temp

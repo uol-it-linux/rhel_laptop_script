@@ -1,6 +1,6 @@
 ---
 - name: Add Post Install Setup Script
   ansible.builtin.copy:
-  src: setup.sh
-  dest: /root/setup.sh
-  mode: '0755'
+    src: setup.sh
+    dest: /root/setup.sh
+    mode: '0755'

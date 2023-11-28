@@ -35,7 +35,7 @@ done
 # Enter and verify LUKS passphrase
 read -s -p "Enter LUKS Passphrase: " pass
 while true; do
-    if cryptsetup luksOpen /dev/nvme0n1p3 luks_temp <<< "$pass"; then
+    if cryptsetup luksOpen --test-passphrase /dev/nvme0n1p3 luks_temp <<< "$pass"; then
         cryptsetup luksClose luks_temp
         echo -e "${G}LUKS Password Correct, configuring CLEVIS Bind."
         break

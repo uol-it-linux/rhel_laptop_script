@@ -7,6 +7,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # Set color variables
+### Colorisation not working everywhere
 R='\033[0;31m' # Red
 G='\033[0;32m' # Green
 
@@ -21,6 +22,8 @@ while true; do
     echo
     read -s -p "Enter UOL password: " upass
 
+
+### this is a loop of death. Fix it!
     # Use kinit to obtain a Kerberos ticket
     kinit "$username" <<< "$upass"
 
@@ -53,7 +56,8 @@ echo -e "${G}Binding to TPM..."
 clevis luks bind -d /dev/nvme0n1p3 tpm2 '{"hash":"sha256","key":"rsa","pcr_bank":"sha256","pcr_ids":"7"}' || echo -e "${R}Error binding to TPM."
 dracut -fv --regenerate-all || echo -e "${R}Error regenerating initramfs."
 echo -e "${G}Set Backup Passphrase"
-cryptsetup luksAddKey /dev/nvme0n1p3 luks_temp <<< "$pass"
+#### THIS DOESN'T WORK
+cryptsetup luksAddKey /dev/nvme0n1p3 luks_temp <<< "$pass" 
 
 # Move local home, create symlink, and fix potential SELinux issue
 echo -e "${G}Setting /localhome"

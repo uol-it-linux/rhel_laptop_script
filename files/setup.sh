@@ -16,24 +16,34 @@ username=""
 upass=""
 
 # Enter and verify UOL account using Kerberos
+max_retries=3
+
 while true; do
     echo -e "${G}Verify username and password using Kerberos"
     read -p "Enter UOL username: " username
     echo
     read -s -p "Enter UOL password: " upass
 
+    for ((attempt = 1; attempt <= max_retries; attempt++)); do
+        kinit "$username" <<< "$upass"
 
-### this is a loop of death. Fix it!
-    # Use kinit to obtain a Kerberos ticket
-    kinit "$username" <<< "$upass"
+        if [ $? -eq 0 ]; then
+            echo -e "${G}Kerberos authentication successful."
+            break  # Exit the retry loop if authentication is successful
+        else
+            echo -e "${R}Kerberos authentication failed (Attempt $attempt/$max_retries). Please check your username and password and try again."
 
-    if [ $? -eq 0 ]; then
-        echo -e "${G}Kerberos authentication successful."
-        break
-    else
-        echo -e "${R}Kerberos authentication failed. Please check your username and password and try again."
-    fi
+            if [ $attempt -lt $max_retries ]; then
+                read -s -p "Re-enter UOL password: " upass
+                echo
+            else
+                echo -e "${R}Maximum number of retries reached. PLEASE CHECK NETWORK AND DOMAIN JOIN."
+                exit 1
+            fi
+        fi
+    done
 done
+
 
 # Enter and verify LUKS passphrase
 read -s -p "Enter LUKS Passphrase: " pass
@@ -44,6 +54,7 @@ while true; do
         break
     else
         echo -e "${R}LUKS Passphrase incorrect, please enter it again."
+        read -s -p "Re-enter LUKS Passphrase: " pass
     fi
 done
 
@@ -56,8 +67,8 @@ echo -e "${G}Binding to TPM..."
 clevis luks bind -d /dev/nvme0n1p3 tpm2 '{"hash":"sha256","key":"rsa","pcr_bank":"sha256","pcr_ids":"7"}' || echo -e "${R}Error binding to TPM."
 dracut -fv --regenerate-all || echo -e "${R}Error regenerating initramfs."
 echo -e "${G}Set Backup Passphrase"
-#### THIS DOESN'T WORK
-cryptsetup luksAddKey /dev/nvme0n1p3 luks_temp <<< "$pass" 
+# This will work, but it should be more automatic
+cryptsetup luksAddKey /dev/nvme0n1p3 
 
 # Move local home, create symlink, and fix potential SELinux issue
 echo -e "${G}Setting /localhome"
@@ -70,7 +81,9 @@ chmod 1777 /localhome/data/
 ls -Z /localhome
 ls -la /localhome/data || echo -e "${R}Error listing /localhome/data."
 
+### this fails if already set
 # Disable Wayland
+
 echo -e "${G}Disabling Wayland"
 
 # Path to the gdm custom.conf file
@@ -82,10 +95,9 @@ search_line="#WaylandEnable=false"
 # Replacement line
 replacement_line="WaylandEnable=false"
 
-# Check if the file exists
-if [ ! -f "$gdm_conf" ]; then
-    echo -e "${R}Error: $gdm_conf does not exist. Please check the file path."
-    exit 1
+#Ensure custom.conf exists
+if [ ! -f "$gdm_conf"]; then
+    touch "$gdm_conf"
 fi
 
 # Check if the line to be replaced exists in the file
@@ -98,7 +110,6 @@ if grep -q "$search_line" "$gdm_conf"; then
     restorecon -v "$gdm_conf"
 else
     echo -e "${R}Error: $search_line not found in $gdm_conf. No changes made."
-    exit 1
 fi
 
 
@@ -114,7 +125,7 @@ echo "Downloading bootstrap script..."
 if curl --insecure --output "$bootstrap_script" --fail "$bootstrap_url"; then
     echo -e "${G}Bootstrap script downloaded successfully."
 else
-    echo -e "${R}Error: Failed to download the bootstrap script. Exiting."
+    echo -e "${R}Error: Failed to download the bootstrap script. Exiting. Please re-run setup.sh"
     exit 1
 fi
 

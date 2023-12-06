@@ -17,6 +17,7 @@ upass=""
 
 # Enter and verify UOL account using Kerberos
 max_retries=3
+auth_success=false
 
 while true; do
     echo -e "${G}Verify username and password using Kerberos"
@@ -29,6 +30,7 @@ while true; do
 
         if [ $? -eq 0 ]; then
             echo -e "${G}Kerberos authentication successful."
+            auth_success=true
             break  # Exit the retry loop if authentication is successful
         else
             echo -e "${R}Kerberos authentication failed (Attempt $attempt/$max_retries). Please check your username and password and try again."
@@ -42,6 +44,10 @@ while true; do
             fi
         fi
     done
+
+    if [ "$auth_success" = true ]; then
+        break  # Exit the outer loop if authentication is successful
+    fi
 done
 
 

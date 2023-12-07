@@ -3,6 +3,7 @@
 # Ensure script run as root
 if [ "$(id -u)" -ne 0 ]; then
    echo -e "\033[0;31mThis script can be executed only as root. Exiting..."
+   $X
    exit 1
 fi
 

@@ -10,7 +10,7 @@ fi
 ### Colorisation not working everywhere
 R='\033[0;31m' # Red
 G='\033[0;32m' # Green
-X='tput sgr0' # Reset
+X='tput sgr0' # Reset Colours
 
 # Initialize variables
 username=""

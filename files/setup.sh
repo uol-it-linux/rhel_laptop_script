@@ -86,6 +86,7 @@ echo -e "${G}Set Backup Passphrase"
 $X
 # This will work, but it should be more automatic
 cryptsetup luksAddKey /dev/nvme0n1p3 
+$X
 
 # Move local home, create symlink, and fix potential SELinux issue
 echo -e "${G}Setting /localhome"
